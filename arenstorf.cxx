@@ -54,7 +54,7 @@ int main(){
 
     double mu = 0.012277471;
 	double T0=17.065216560157;
-	double eps = 1e-8;
+	double eps = 1e-5;
 	y0[0]=0.994;
     y0[1]=0;
     y0[2]=0;
@@ -68,8 +68,10 @@ int main(){
 			yn5[i]=y0[i]+5179./57600*step*k1[i]+7571./16695*step*k3[i]+393./640*step*k4[i]-92097./339200*step*k5[i]+187./2100*step*k6[i]+1./40*step*k7[i];  
 		
 		dis=abs(yn5[0]-yn4[0]);
-		if(abs(yn5[2]-yn4[2])>dis)
-			dis=abs(yn5[2]-yn4[2]);							// Berechne Distanz
+		for(int i=1; i<dim;i++){
+			if(abs(yn5[i]-yn4[i])>dis)
+				dis=abs(yn5[i]-yn4[i]);							// Berechne Distanz
+		}
 
 		step=step*pow(eps/dis,0.2);							// Neue Schrittweite
 
