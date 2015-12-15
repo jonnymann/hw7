@@ -1,79 +1,87 @@
 #include <iostream>
-#include <math>
+#include <cmaths>
 
 
 using namespace std;
 
-void f(double* x, double* y, double* kx, double* ky, double mu){
-    double r = sqrt(pow(x[0]+mu,2)+pow(y[0],2));
-    double s = sqrt(pow(x[0]+1-mu,2)+pow(y[0],2));
-    kx[0]=x[1];
-    kx[1]=x[0]-2*y[1]-(1-mu)*(x[0]+mu)/pow(r,3)-mu*(x[0]-1+mu)/pow(s,3);
-    ky[0]=y[1];
-    ky[1]=y[0]-2*x[1]-(1-mu)*y[0]/pow(y[0],3)-mu*y[0]/pow(s,3);
+void f(double* y,double* k, double mu){
+    double r = sqrt(pow(y[0]+mu,2)+pow(y[2],2));
+    double s = sqrt(pow(y[0]+1-mu,2)+pow(y[2],2));
+    k[0]=y[1];
+    k[1]=y[0]+2*y[3]-(1-mu)*(y[0]+mu)/pow(r,3)-mu*(y[0]-1+mu)/pow(s,3);
+    k[2]=y[3];
+    k[3]=y[2]-2*y[1]-(1-mu)*y[2]/pow(r,3)-mu*y[2]/pow(s,3);
     
 }
+
+void RK4Step(double* y0, double* yn4, double* k1, double* k2, double* k3, double* k4, double* k5, double* k6, double mu, double step, int dim){
+	
+	f(y0,k1,mu);
+	for(int i=0;i<dim;i++)
+		yn4[i]=y0[i]+0.2*step*k1[i];
+    
+    f(yn4,k2,mu);
+	for(int i=0;i<dim;i++)
+		yn4[i]=y0[i]+3/40*step*k1[i]+9/40*step*k2[i];
+       
+    f(yn4,k3,mu);
+	for(int i=0;i<dim;i++)
+		yn4[i]=y0[i]+44/45*step*k1[i]-56/15*step*k2[i]+32/9*step*k3[i];
+
+    f(yn4,k4,mu);
+	for(int i=0;i<dim;i++)
+		yn4[i]=y0[i]+19372/6561*step*k1[i]-25360/2187*step*k2[i]+64448/6561*step*k3[i]-212/729*step*k4[i];
+
+    f(yn4,k5,mu);
+	for(int i=0;i<dim;i++)
+		yn4[i]=y0[i]+9017/3168*step*k1[i]-355/33*step*k2[i]+46732/5247*step*k3[i]-49/176*step*k4[i]-5103/18656*step*k5[i];
+
+    f(yn4,k6,mu);
+	for(int i=0;i<dim;i++)
+		yn4[i]=y0[i]+35/384*step*k1[i]+500/1113*step*k3[i]-125/192*step*k4[i]-2187/6784*step*k5[i]+11/84*step*k6[i];
+}
+
+
 
 int main(){
     const int N = 1000;
     double step = 1e-3;
+    const int dim = 4;
+	double t=0, dis;
+
+    
+    double k1[dim],k2[dim],k3[dim],k4[dim],k5[dim],k6[dim],k7[dim];
+    double y0[dim],yn4[dim],yn5[dim]; 
+
     double mu = 0.0012277471;
-    const int dim = 2;
-    
-    double kx1[dim],kx2[dim],kx3[dim],kx4[dim],kx5[dim],kx6[dim],kx7[dim];
-    double ky1[dim],ky2[dim],ky3[dim],ky4[dim],ky5[dim],ky6[dim],ky7[dim];
-    double x0[dim],y0[dim],xn4[dim],yn4[dim],xn5[dim],yn5[dim]; 
+	double T=17.065216560157;
+	double eps = 1e-6;
+	y[0]=0.994;
+    y[1]=0;
+    y[2]=0;
+    y[3]=-2.00158510637908;
+	
+	while (t<T)
+	{
+		RK4Step(y0,yn4,k1,k2,k3,k4,k5,k6,mu,step,dim);		// Runge Kutta Stufe 4
 
-    /* Erde-Mond+leichte Masse:
-        x[0]=0.994;
-        x[1]=0;
-        y[0]=0;
-        y[1]=-2.00158510637908;
-    // (T=17.065216560157)
-        */
-    
-    
-        f(x0,y0,kx1,ky1,mu);
-        xn4[0]=x0[0]+0.2*step*kx1[0];
-        xn4[1]=x0[1]+0.2*step*kx1[1];
-        yn4[0]=y0[0]+0.2*step*ky1[0];
-        yn4[1]=y0[1]+0.2*step*ky1[1];
-    
-        f(xn4,yn4,kx2,ky2,mu);
-        xn4[0]=x0[0]+3/40*step*kx1[0]+9/40*step*kx2[0];
-        xn4[1]=x0[1]+3/40*step*kx1[1]+9/40*step*kx2[1];
-        yn4[0]=y0[0]+3/40*step*ky1[0]+9/40*step*ky2[0];
-        yn4[1]=y0[1]+3/40*step*ky1[1]+9/40*step*ky2[1];
+		f(yn4,k7,mu);										
+		for(int i=0;i<dim;i++)								// Runge Kutta Stufe 5
+			yn5[i]=y0[i]+5179/57600*step*k1[i]+7571/16695*step*k3[i]-393/640*step*k4[i]-92097/339200*step*k5[i]+187/2100*step*k6[i]+1/40*step*k7[i];  
 
-        f(xn4,yn4,kx3,ky3,mu);
-        xn4[0]=x0[0]+44/45*step*kx1[0]-56/15*step*kx2[0]+32/9*step*kx3[0];
-        xn4[1]=x0[1]+44/45*step*kx1[1]-56/15*step*kx2[1]+32/9*step*kx3[1];
-        yn4[0]=y0[0]+44/45*step*ky1[0]-56/15*step*ky2[0]+32/9*step*ky3[0];
-        yn4[1]=y0[1]+44/45*step*ky1[1]-56/15*step*ky2[1]+32/9*step*ky3[1];
+		dis=0;												
+		for(int i=0; i<dim; i++)
+			dis=dis+pow(yn5[i]-yn4[i],2);					// Distanz der beiden Verfahren
+		dis=sqrt(dis);										
 
-        f(xn4,yn4,kx4,ky4,mu);
-        xn4[0]=x0[0]+19372/6561*step*kx1[0]-25360/2187*step*kx2[0]+64448/6561*step*kx3[0]-212/729*step*kx4[0];
-        xn4[1]=x0[1]+19372/6561*step*kx1[1]-25360/2187*step*kx2[1]+64448/6561*step*kx3[1]-212/729*step*kx4[1];
-        yn4[0]=y0[0]+19372/6561*step*ky1[0]-25360/2187*step*ky2[0]+64448/6561*step*ky3[0]-212/729*step*ky4[0];
-        yn4[1]=y0[1]+19372/6561*step*ky1[1]-25360/2187*step*ky2[1]+64448/6561*step*ky3[1]-212/729*step*ky4[1];
+		step=step*pow(eps/dis,0.2);							// Neue Schrittweite
 
-        f(xn4,yn4,kx5,ky5,mu);
-        xn4[0]=x0[0]+9017/3168*step*kx1[0]-355/33*step*kx2[0]+46732/5247*step*kx3[0]-49/176*step*kx4[0]-5103/18656*step*kx5[0];
-        xn4[1]=x0[1]+9017/3168*step*kx1[1]-355/33*step*kx2[1]+46732/5247*step*kx3[1]-49/176*step*kx4[1]-5103/18656*step*kx5[1];
-        yn4[0]=y0[0]+9017/3168*step*ky1[0]-355/33*step*ky2[0]+46732/5247*step*ky3[0]-49/176*step*ky4[0]-5103/18656*step*ky5[0];
-        yn4[1]=y0[1]+9017/3168*step*ky1[1]-355/33*step*ky2[1]+46732/5247*step*ky3[1]-49/176*step*ky4[1]-5103/18656*step*ky5[1];
+		RK4Step(y0,yn4,k1,k2,k3,k4,k5,k6,mu,step,dim);		// Runge Kutta 4 mit neuer Schrittweite
+		cout << yn4[0] << '\t' < yn4[2];					// Ausgabe
 
-        f(xn4,yn4,kx6,ky6,mu);
-        xn4[0]=x0[0]+35/384*step*kx1[0]+500/1113*step*kx3[0]-125/192*step*kx4[0]-2187/6784*step*kx5[0]+11/84*step*kx6[0];
-        xn4[1]=x0[1]+35/384*step*kx1[1]+500/1113*step*kx3[1]-125/192*step*kx4[1]-2187/6784*step*kx5[1]+11/84*step*kx6[1];
-        yn4[0]=y0[0]+35/384*step*ky1[0]+500/1113*step*ky3[0]-125/192*step*ky4[0]-2187/6784*step*ky5[0]+11/84*step*ky6[0];
-        yn4[1]=y0[1]+35/384*step*ky1[1]+500/1113*step*ky3[1]-125/192*step*ky4[1]-2187/6784*step*ky5[1]+11/84*step*ky6[1];        
-    
-        f(xn4,yn4,kx7,ky7,mu);
-        xn5[0]=x0[0]+5179/57600*step*kx1[0]+7571/16695*step*kx3[0]-393/640*step*kx4[0]-92097/339200*step*kx5[0]+187/2100*step*kx6[0]+1/40*step*kx7[0];
-        xn5[1]=x0[1]+5179/57600*step*kx1[1]+7571/16695*step*kx3[1]-393/640*step*kx4[1]-92097/339200*step*kx5[1]+187/2100*step*kx6[1]+1/40*step*kx7[1];
-        yn5[0]=y0[0]+5179/57600*step*ky1[0]+7571/16695*step*ky3[0]-393/640*step*ky4[0]-92097/339200*step*ky5[0]+187/2100*step*ky6[0]+1/40*step*ky7[0];
-        yn5[1]=y0[1]+5179/57600*step*ky1[1]+7571/16695*step*ky3[1]-393/640*step*ky4[1]-92097/339200*step*ky5[1]+187/2100*step*ky6[1]+1/40*step*ky7[1];  
-        
-        return 0;
+		for(int i=0; i<dim; i++)							// Vorbereitung auf nächsten Schleifendurchgang
+			y0[i]=yn4[i];
+		t=t+step;
+	}
+	return 0;
 }
